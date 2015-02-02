@@ -119,7 +119,9 @@ class TestCmac(unittest.TestCase):
  
 
 class TestTrain(unittest.TestCase):
-    def setUp(self):
+
+    def setUp(self): pass
+    def test_train_more_one_conf(self): 
         confs = []
         confs.append(cmac.SignalConfiguration(-10., 10., 100))
         confs.append(cmac.SignalConfiguration(-10., 10., 100))
@@ -130,24 +132,26 @@ class TestTrain(unittest.TestCase):
             n1 = random.uniform(-100, 100)
             n2 = random.uniform(-100, 100)
             temp = array([[n1, n2]])
-            if data_in == None: data_in = temp
-            else: data_in = concatenate((data_in, temp))
+            if data_in == None: 
+                data_in = temp
+            else: 
+                data_in = concatenate((data_in, temp))
             data_out = concatenate((data_out, array([random.uniform(-100, 100)])))
         data_out = reshape(data_out, (len(data_out), 1))
-        self._train = cmac.Train(_cmac, data_in, data_out, 0.5, 10)
         
+        _train = cmac.Train(_cmac, data_in, data_out, 0.5, 10)
+        _train.train()
         
-    
-    def test_train(self): 
-        self._train.train()
+    def test_train_one_conf(self): 
+        confs = []
+        confs.append(cmac.SignalConfiguration(-10., 10., 100))
+        ann = cmac.CMAC(confs, 4)
+        _train = cmac.Train(ann, np.random.uniform(-10, 10, 500), np.random.uniform(0, 1000, 500), 0.5, 50)
         
-   
+ 
 def main():
     unittest.main()
 
-def run_tests():
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestCmac)
-    unittest.TextTestRunner().run(suite)
 
 if __name__ == '__main__':
     main()

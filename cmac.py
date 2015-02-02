@@ -5,7 +5,7 @@ class CMAC(object):
         self._num_active_cells = num_active_cells
         self._signal_configurations = signal_configurations
         self._set_signal_mappings()
-        self._table = {}
+        self._weight_table = {}
         np.random.seed()
 
     def _set_signal_mappings(self):
@@ -51,20 +51,22 @@ class CMAC(object):
             p = p + self.get_weight(address)    
         return p
 
+    def fire_all(self, inputs):
+        result = []
+        for data in inputs:
+            result.append(self.fire(data))
+        return result
+
     def get_weight(self, address):
         try:
-            return self.weight_table[address]
+            return self._weight_table[address]
         except KeyError:
-            self.weight_table[address] = np.random.uniform(-0.2, 0.2)
-            return self.weight_table[address]
+            self._weight_table[address] = np.random.uniform(-0.2, 0.2)
+            return self._weight_table[address]
 
     def set_weight(self, address, value):
-        self.weight_table[address] = value
+        self._weight_table[address] = value
             
-    @property
-    def weight_table(self):
-        return self._table            
-
     @property
     def num_active_cells(self):
         return self._num_active_cells
@@ -73,14 +75,9 @@ class CMAC(object):
     def signal_configuration(self):
         return self._signal_configurations
     
-    @property
-    def hyperplane(self):
-        return self._hyperplane
-
-
 class Train(object):
-    def __init__(self, cmac, data_in, data_out, alpha, num_iterations):
-        self._cmac = cmac
+    def __init__(self, cmac_ann, data_in, data_out, alpha, num_iterations):
+        self._ann = cmac_ann
         self._data_in = data_in
         self._data_out = data_out
         self._alpha = alpha
@@ -91,10 +88,11 @@ class Train(object):
         for iteration in range(self._num_iterations):
 	    err =0
             for i in range(len(self.data_in)):
-                input_signal_vector = self.data_in[i, :].tolist()
-                out = self.cmac.fire(input_signal_vector)
-                for calculated_adress in self.cmac.calculate_activation_adresses(input_signal_vector):
-                    self.cmac.set_weight(calculated_adress, self.cmac.get_weight(calculated_adress) + self.alpha * (self.data_out[i] - out) / self.cmac.num_active_cells)
+                if len(self.data_in.shape)==1: input_signal_vector = [self.data_in[i]]
+                else: input_signal_vector = self.data_in[i, :].tolist()
+                out = self._ann.fire(input_signal_vector)
+                for calculated_adress in self._ann.calculate_activation_adresses(input_signal_vector):
+                    self._ann.set_weight(calculated_adress, self._ann.get_weight(calculated_adress) + self.alpha * (self.data_out[i] - out) / self._ann.num_active_cells)
 		    err = err+ ((self.data_out[i] - out)**2)/2
 	    self.E.append(err)
            
@@ -112,7 +110,7 @@ class Train(object):
     
     @property
     def cmac(self):
-        return self._cmac
+        return self._ann
 
 class SignalConfiguration(object):
     def __init__(self, s_min, s_max, num_discret_values, desc=None):
