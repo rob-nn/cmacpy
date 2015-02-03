@@ -81,7 +81,7 @@ class AproximateSombrero:
 
     def train(self):
         input_values, output_values = self._sombrero_mesh_shaped(self._training_set)
-        train = cmacpy.Train(self._cmacpy, input_values, output_values, 0.5, 20)
+        train = cmacpy.Train(self._cmacpy, input_values, output_values, 0.5, 30)
         train.train()
     
     def predict(self):
